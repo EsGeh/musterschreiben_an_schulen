@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import document
-from doc_utils import Options
+from doc_utils import Options, set_skip
 
 import argparse
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         print( f"opt: {args.opt}" )
         options = Options.LIST
     if args.skip:
-        skip=True
+        set_skip( True )
     print( f"options: {options}" )
     print( f"glaubhaftmachung: {args.glaubhaftmachung}" )
     print( f"DOCUMENT:" )

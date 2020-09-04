@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from doc_utils import Options, print_skip
 
 def generate(
@@ -128,7 +126,7 @@ Der Zusatz der Pflicht zur Glaubhaftmachtung entfaltet schon deshalb keine Wirks
                 )
 
         # Berlin
-        if bundesland == "Berlin":
+        elif bundesland == "Berlin":
             print_skip(
 """
 

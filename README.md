@@ -15,8 +15,8 @@ Parameters:
 
 Example: Dokument für Bundesland "Bayern", Option 1: kein Attest
 
-	$ ./muster.py -o 1 Bayern
+	$ ./src/muster.py -o 1 Bayern
 
 Print help:
 
-	$ ./muster.py --help
+	$ ./src/muster.py --help
