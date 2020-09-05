@@ -1,6 +1,6 @@
 from enum import Enum
 import itertools
-
+import sys
 
 SKIP = False
 
@@ -62,3 +62,6 @@ def return_doc():
 def set_skip( skip ):
     global SKIP
     SKIP=skip
+
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)

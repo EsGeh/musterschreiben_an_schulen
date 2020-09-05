@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
 import document
-from doc_utils import Options, Bundesland, set_skip
+from doc_utils import Options, Bundesland, set_skip, print_err
 
 import argparse
 from pathlib import Path
 import sys
 
-
-def print_err(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')

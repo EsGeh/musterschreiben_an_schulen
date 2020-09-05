@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import document
-from doc_utils import Options, Bundesland, set_skip
+from doc_utils import Options, Bundesland, set_skip, print_err
 
 import argparse
 import sys
@@ -42,11 +42,10 @@ if __name__ == "__main__":
         bundesland = Bundesland[args.bundesland]
     except KeyError:
         sys.exit("invalid Bundesland")
-    print( f"Bundesland: {bundesland.name}" )
-    print( f"options: {options.name}" )
-    print( f"glaubhaftmachung: {args.glaubhaftmachung}" )
-    print( f"DOCUMENT:" )
-    print( f"-------------------------------" )
+    print_err( f"Bundesland: {bundesland.name}" )
+    print_err( f"options: {options.name}" )
+    print_err( f"glaubhaftmachung: {args.glaubhaftmachung}" )
+    print_err( f"---------------------------------------------" )
 
     print(
             document.generate(
