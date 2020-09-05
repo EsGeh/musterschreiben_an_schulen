@@ -11,12 +11,18 @@ Parameters:
 
 - Python 3.8
 
-## Usage
+## Print single case
 
-Example: Dokument für Bundesland "Bayern", Option 1: kein Attest
+Example: Dokument für Bundesland "Bayern", Option: Attest
 
-	$ ./src/muster.py -o 1 Bayern
+	$ ./src/muster.py -o attest Bayern
 
 Print help:
 
 	$ ./src/muster.py --help
+
+## Generate all cases
+
+	$ ./src/gen_all_docs.py
+
+This will write the output for all cases to `./output/` as text files, conveniently named.

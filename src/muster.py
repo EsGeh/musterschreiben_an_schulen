@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import document
-from doc_utils import Options, set_skip
+from doc_utils import Options, Bundesland, set_skip
 
 import argparse
+import sys
 
 
 if __name__ == "__main__":
@@ -16,9 +17,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
             '-o', '--opt',
-            type=int,
             required=True,
-            help='1: attest, 2: no attest, 3: list'
+            help='one of '+ ', '.join(f"'{x.name}'" for x in Options)
     )
     parser.add_argument(
             '-g', '--glaubhaftmachung',
@@ -28,26 +28,30 @@ if __name__ == "__main__":
     )
     parser.add_argument(
             'bundesland',
-            help=''
+            help='one of '+ ', '.join(f"'{x.name}'" for x in Bundesland)
     )
     args = parser.parse_args()
 
-    if args.opt == 1:
-        options = Options.ATTEST
-    elif args.opt == 2:
-        options = Options.NO_ATTEST
-    else:
-        print( f"opt: {args.opt}" )
-        options = Options.LIST
     if args.skip:
         set_skip( True )
-    print( f"options: {options}" )
+    try:
+        options = Options[args.opt]
+    except KeyError:
+        sys.exit("invalid option")
+    try:
+        bundesland = Bundesland[args.bundesland]
+    except KeyError:
+        sys.exit("invalid Bundesland")
+    print( f"Bundesland: {bundesland.name}" )
+    print( f"options: {options.name}" )
     print( f"glaubhaftmachung: {args.glaubhaftmachung}" )
     print( f"DOCUMENT:" )
     print( f"-------------------------------" )
 
-    document.generate(
-            options = options,
-            glaubhaftmachung = args.glaubhaftmachung,
-            bundesland = args.bundesland
+    print(
+            document.generate(
+                options = options,
+                glaubhaftmachung = args.glaubhaftmachung,
+                bundesland = bundesland
+            )
     )
