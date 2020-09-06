@@ -5,7 +5,10 @@ Parameters:
 
 - Bundesland
 - Attest: Hat der Schüler ein Attest, dass ihn von der Maskenpflicht befreit?
-- Glaubhaftmachung: Sind die Eltern bereit, falls kein Attest vorliegt, eine Glaubhaftmachung abzuliefern, dass kein Attest getragen werden kann?
+- Glaubhaftmachung: Sind die Eltern bereit, falls kein Attest vorliegt, eine Glaubhaftmachung abzuliefern, dass keine Maske getragen werden kann?
+
+The polymorphic document is described via Python code in `document.py`.
+Edit this file to change the output.
 
 ## Prerequisits
 
