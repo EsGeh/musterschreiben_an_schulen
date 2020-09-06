@@ -13,6 +13,7 @@ Edit this file to change the output.
 ## Prerequisits
 
 - Python 3.8
+- (optional:) pandoc (only needed to generate output for file formats other than markdown)
 
 ## Print single case
 
@@ -20,7 +21,7 @@ Example: Dokument für Bundesland "Bayern", Option: Attest
 
 	$ ./src/muster.py -o attest Bayern
 
-Print help:
+For further information, issue:
 
 	$ ./src/muster.py --help
 
@@ -28,4 +29,8 @@ Print help:
 
 	$ ./src/gen_all_docs.py
 
-This will write the output for all cases to `./output/` as text files, conveniently named.
+This will write the output for all cases to `./output/` in different formats, conveniently named.
+
+For further information, issue:
+
+	$ ./src/gen_all_docs.py --help

@@ -6,7 +6,19 @@ from doc_utils import Options, Bundesland, set_skip, print_err
 import argparse
 from pathlib import Path
 import sys
+import subprocess
+import shutil
 
+
+output_formats = ['txt', 'docx', 'pdf']
+
+def convert_file(
+        input,
+        output
+):
+    subprocess.run(
+            ["pandoc", "--pdf-engine=xelatex", "-o", output, input]
+    )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
@@ -29,16 +41,27 @@ if __name__ == "__main__":
             type=Path,
             help='where to store all generated output files'
     )
+    parser.add_argument(
+            '-f', '--format',
+            action='append',
+            # default=output_formats,
+            help=''
+    )
     args = parser.parse_args()
 
     if args.skip:
         set_skip( True )
-    output_dir = args.output_dir
     overwrite = args.overwrite
-    if output_dir.is_dir() and output_dir.exists() and not(overwrite):
+    output_dir = args.output_dir
+    output_formats = args.format if args.format else output_formats
+    if output_dir.is_dir() and output_dir.exists() and overwrite:
+        shutil.rmtree( output_dir )
+    if output_dir.is_dir() and output_dir.exists():
         sys.exit( f"directory {output_dir} already exists!")
     if not(output_dir.is_dir()) and not(output_dir.exists()):
         output_dir.mkdir()
+        for file_format in output_formats + ['md']:
+            (output_dir / file_format) . mkdir()
     for bundesland in Bundesland:
         doc_dict = {}
         # collect all documents for this bundesland:
@@ -64,7 +87,11 @@ if __name__ == "__main__":
             for glaubhaft in (False,True):
                 if all(x[1] == glaubhaft for x in opts_and_glaubhaft):
                     filename += ('_glaubhaft' if glaubhaft else '')
-            filename = output_dir / filename
-            print_err( f"  writing: {filename}" )
-            with open(filename, 'w') as f:
+            filename_markdown = (output_dir / 'md' / filename) . with_suffix( '.md' )
+            with open(filename_markdown, 'w') as f:
+                print_err( f"  writing: {filename_markdown}" )
                 f.write( doc )
+            for file_format in output_formats:
+                filename_current = (output_dir / file_format / filename ) . with_suffix( '.' + file_format)
+                print_err( f"  writing: {filename_current}" )
+                convert_file( filename_markdown, filename_current )
