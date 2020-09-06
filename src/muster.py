@@ -13,7 +13,7 @@ if __name__ == "__main__":
             '-s', '--skip',
             action='store_true',
             default=False,
-            help=''
+            help="in output, abbreviate long text blocks with ..."
     )
     parser.add_argument(
             '-o', '--opt',

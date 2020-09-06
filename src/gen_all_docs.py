@@ -26,17 +26,18 @@ if __name__ == "__main__":
             '-s', '--skip',
             action='store_true',
             default=False,
-            help=''
+            help="in output, abbreviate long text blocks with ..."
     )
     parser.add_argument(
             '-!', '--overwrite',
             action='store_true',
             default=False,
-            help=''
+            help='overwrite output directory, if existing'
     )
     parser.add_argument(
             'output_dir',
             default="output",
+            metavar="OUPUT_DIR",
             nargs='?',
             type=Path,
             help='where to store all generated output files'
@@ -44,8 +45,7 @@ if __name__ == "__main__":
     parser.add_argument(
             '-f', '--format',
             action='append',
-            # default=output_formats,
-            help=''
+            help="output documents in some additional format: 'txt', 'doxc', 'pdf'. default: <all formats>"
     )
     args = parser.parse_args()
 
