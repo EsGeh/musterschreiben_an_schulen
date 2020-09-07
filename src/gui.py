@@ -6,6 +6,8 @@ import document
 import tkinter as tk
 from tkinter import ttk
 import tkinter.scrolledtext
+import difflib
+# from pprint import pprint
 
 
 views = []
@@ -21,7 +23,6 @@ class View(tk.Frame):
         self.options = Options.ATTEST
         self.glaubhaftmachung = False
         self.init_ui()
-        self.set_output()
     def init_ui(self):
         self.options_var = tk.IntVar(0)
         self.glaubhaftmachung_var = tk.IntVar(0)
@@ -86,14 +87,15 @@ class View(tk.Frame):
         self.text_gui = tk.Text(
                 self
         )
+        self.text_gui.config(
+                wrap = tk.NONE
+        )
         self.vsb = tk.Scrollbar(
                 self,
                 orient="vertical",
-                # command=self.on_scroll
         )
         self.vsb.pack(side="right",fill="y")
         self.vsb.config(
-                # command = self.text_gui.yview
                 command=on_scroll
         )
         self.text_gui['yscrollcommand'] = self.vsb.set 
@@ -105,41 +107,162 @@ class View(tk.Frame):
                 expand = True
         )
 
-    '''
-    def on_scroll(self, *args):
-        # print( args )
-        self.text_gui.yview( *args )
-    '''
-
-    def set_output(self):
-        self.text_gui.delete(
-                1.0,
-                tk.END
-        )
-        doc = document.generate(
-            options = self.options,
-            glaubhaftmachung = self.glaubhaftmachung,
-            bundesland = self.bundesland
-        )
-        self.text_gui.insert(
-                tk.END,
-                doc
-        )
-
     def set_bundesland( self, event ):
         self.bundesland = Bundesland[ self.bundesland_gui.get() ]
         print( self.bundesland )
-        self.set_output()
+        set_output()
 
     def set_options(self):
         self.options = Options(self.options_var.get())
         print( self.options )
-        self.set_output()
+        set_output()
 
     def set_glaubhaftmachung(self):
         self.glaubhaftmachung = bool(self.glaubhaftmachung_var.get())
         print( self.glaubhaftmachung )
-        self.set_output()
+        set_output()
+
+def set_output():
+    differ = difflib.Differ()
+    first_view = views[0]
+    first_doc = document.generate(
+        options = first_view.options,
+        glaubhaftmachung = first_view.glaubhaftmachung,
+        bundesland = first_view.bundesland
+    )
+
+    """ format:
+        [ [(rel1, doc_0_line_0), (rel1, doc_1_line_0), (rel2, doc_2_line_0), ...],
+          ...
+        ]
+        where
+            rel1, rel2, ... one of
+                "=": if line is equal to first_doc
+                "e": if the line differ from first doc
+            doc_i_line_j can also be 'None': a dummy line in order to keep correspondence between matching lines
+
+    """
+    docs_marked_lines = [[("=", line)] for line in first_doc.splitlines(keepends = True)]
+
+    for view_nr, view in enumerate(views[1:], 1):
+        doc = document.generate(
+            options = view.options,
+            glaubhaftmachung = view.glaubhaftmachung,
+            bundesland = view.bundesland
+        )
+        diff = differ.compare(
+                first_doc.splitlines(keepends = True),
+                doc.splitlines(keepends = True)
+        )
+        b = []
+        last_matching_line = -1
+        line_nr = 0
+        for line in diff:
+            # line common in both sequences:
+            if line.startswith( "  " ):
+                # skip dummy lines
+                while docs_marked_lines[line_nr][0][1] is None:
+                    line_nr += 1
+                # how many lines does the other text exceed the first one?
+                diff_lines = (last_matching_line + len(b)) - line_nr + 1
+                # do we need dummy lines in the previous docs?
+                for _ in range( diff_lines ):
+                    docs_marked_lines.insert(
+                            line_nr,
+                            [("=", None) for _ in range(view_nr)]
+                    )
+                    line_nr += 1
+                # print( f"difflines: {diff_lines}" )
+                # do we need dummy lines in the other doc?
+                for _ in range( -diff_lines ):
+                    b.append(
+                            ("=", None)
+                    )
+                for index in range(0, len(b)):
+                    docs_marked_lines[last_matching_line+1+index].append(
+                            b[index]
+                    )
+                b = []
+                docs_marked_lines[line_nr].append(
+                        ('=', line[2:])
+                )
+                last_matching_line = line_nr
+                line_nr += 1
+            elif line.startswith( "+ " ):
+                b += [("e", line[2:])]
+            elif line.startswith( "- " ):
+                line_nr += 1
+
+    first_view.text_gui.config(
+            state=tk.NORMAL
+    )
+    first_view.text_gui.delete(
+            1.0,
+            tk.END
+    )
+    # pprint( docs_marked_lines )
+    for view in views:
+        view.text_gui.tag_config(
+                "dummy",
+                background="SkyBlue1"
+        )
+        for index, color in enumerate(("red", "green", "blue")):
+            view.text_gui.tag_config(
+                    "hi" + str(index),
+                    background=color
+            )
+    for view in views[1:]:
+        view.text_gui.config(
+                state=tk.NORMAL
+        )
+        view.text_gui.delete(
+                1.0,
+                tk.END
+        )
+    for line in docs_marked_lines:
+        first_doc_edit_type = line[0][0]
+        first_doc_line_content = line[0][1]
+        if first_doc_line_content is not None:
+            first_view.text_gui.insert(
+                    tk.END,
+                    first_doc_line_content
+            )
+        else:
+            first_view.text_gui.insert(
+                    tk.END,
+                    "----\n",
+                    ["dummy"]
+            )
+
+        for view_nr, view, other_doc_line in zip(range(1000), views[1:], line[1:]):
+            other_doc_edit_type = other_doc_line[0]
+            other_doc_line_content = other_doc_line[1]
+            # print( f"line: {other_doc_line}" )
+            if other_doc_line_content is not None:
+                if other_doc_edit_type == "e":
+                    view.text_gui.insert(
+                            tk.END,
+                            other_doc_line_content,
+                            "hi" + str(view_nr)
+                    )
+                else:
+                    view.text_gui.insert(
+                            tk.END,
+                            other_doc_line_content,
+                    )
+            else:
+                view.text_gui.insert(
+                        tk.END,
+                        "----\n",
+                        ["dummy"]
+                )
+    first_view.text_gui.config(
+            state=tk.DISABLED
+    )
+    for view in views[1:]:
+        view.text_gui.config(
+                state=tk.DISABLED
+        )
 
 def on_scroll( *args):
     for view in views:
@@ -149,6 +272,7 @@ def add_view():
     # global main_frames
     view = View(root)
     views.append( view )
+    set_output()
 
 def del_view():
     if len(views) > 1:
