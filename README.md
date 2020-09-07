@@ -15,13 +15,21 @@ Edit this file to change the output.
 - Python 3.8
 - (optional:) pandoc (only needed to generate output for file formats other than markdown)
 
+## Compare document manifestations
+
+To run the graphical document viewer execute:
+
+	$ ./src/gui.py
+
+You can open and compare different manifestations of the document.
+
 ## Print single case
 
 Example: Dokument für Bundesland "Bayern", Option: Attest
 
 	$ ./src/muster.py -o attest Bayern
 
-For further information, issue:
+For further information issue:
 
 	$ ./src/muster.py --help
 
@@ -31,6 +39,6 @@ For further information, issue:
 
 This will write the output for all cases to `./output/` in different formats, conveniently named.
 
-For further information, issue:
+For further information issue:
 
 	$ ./src/gen_all_docs.py --help
