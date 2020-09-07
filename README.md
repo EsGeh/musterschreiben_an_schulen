@@ -23,6 +23,8 @@ To run the graphical document viewer execute:
 
 You can open and compare different manifestations of the document.
 
+![screenshot](./img/screenshot.png)
+
 ## Print single case
 
 Example: Dokument für Bundesland "Bayern", Option: Attest
