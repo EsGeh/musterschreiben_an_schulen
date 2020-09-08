@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.scrolledtext
 import difflib
-# from pprint import pprint
+from pprint import pprint
 
 
 views = []
@@ -157,32 +157,17 @@ def set_output():
         b = []
         last_matching_line = -1
         line_nr = 0
-        for line in diff:
+        for diff_line_nr, line in enumerate(diff):
             # line common in both sequences:
             if line.startswith( "  " ):
-                # skip dummy lines
-                while docs_marked_lines[line_nr][0][1] is None:
-                    line_nr += 1
-                # how many lines does the other text exceed the first one?
-                diff_lines = (last_matching_line + len(b)) - line_nr + 1
-                # do we need dummy lines in the previous docs?
-                for _ in range( diff_lines ):
-                    docs_marked_lines.insert(
-                            line_nr,
-                            [("=", None) for _ in range(view_nr)]
-                    )
-                    line_nr += 1
-                # print( f"difflines: {diff_lines}" )
-                # do we need dummy lines in the other doc?
-                for _ in range( -diff_lines ):
-                    b.append(
-                            ("=", None)
-                    )
-                for index in range(0, len(b)):
-                    docs_marked_lines[last_matching_line+1+index].append(
-                            b[index]
-                    )
-                b = []
+                line_nr = dump_lines(
+                        line_nr,
+                        docs_marked_lines,
+                        last_matching_line,
+                        b,
+                        view_nr
+                )
+                b.clear()
                 docs_marked_lines[line_nr].append(
                         ('=', line[2:])
                 )
@@ -192,6 +177,17 @@ def set_output():
                 b += [("e", line[2:])]
             elif line.startswith( "- " ):
                 line_nr += 1
+        # pprint( list(enumerate(docs_marked_lines)) )
+        if len(b) > 0:
+            # print( f"b: {b}, line_nr: {line_nr}" )
+            line_nr = dump_lines(
+                    line_nr,
+                    docs_marked_lines,
+                    last_matching_line,
+                    b,
+                    view_nr
+            )
+            b.clear()
 
     first_view.text_gui.config(
             state=tk.NORMAL
@@ -200,7 +196,6 @@ def set_output():
             1.0,
             tk.END
     )
-    # pprint( docs_marked_lines )
     for view in views:
         view.text_gui.tag_config(
                 "dummy",
@@ -237,7 +232,6 @@ def set_output():
         for view_nr, view, other_doc_line in zip(range(1000), views[1:], line[1:]):
             other_doc_edit_type = other_doc_line[0]
             other_doc_line_content = other_doc_line[1]
-            # print( f"line: {other_doc_line}" )
             if other_doc_line_content is not None:
                 if other_doc_edit_type == "e":
                     view.text_gui.insert(
@@ -264,6 +258,38 @@ def set_output():
                 state=tk.DISABLED
         )
 
+def dump_lines(
+        line_nr,
+        docs_marked_lines,
+        last_matching_line,
+        b,
+        view_nr,
+):
+    # skip dummy lines
+    if line_nr < len(docs_marked_lines):
+        while docs_marked_lines[line_nr][0][1] is None:
+            line_nr += 1
+    # how many lines does the other text exceed the first one?
+    diff_lines = (last_matching_line + len(b)) - line_nr + 1
+    # do we need dummy lines in the previous docs?
+    for _ in range( diff_lines ):
+        docs_marked_lines.insert(
+                line_nr,
+                [("=", None) for _ in range(view_nr)]
+        )
+        line_nr += 1
+    # print( f"difflines: {diff_lines}" )
+    # do we need dummy lines in the other doc?
+    for _ in range( -diff_lines ):
+        b.append(
+                ("=", None)
+        )
+    for index in range(0, len(b)):
+        docs_marked_lines[last_matching_line+1+index].append(
+                b[index]
+        )
+    return line_nr
+
 def on_scroll( *args):
     for view in views:
         view.text_gui.yview( *args )
@@ -280,37 +306,39 @@ def del_view():
         view.pack_forget()
         view.grid_forget()
 
-root = tk.Tk()
-root.title("Explore a polymorphic document")
 
-frame_view_buttons = tk.Frame(
-        root,
-        relief = tk.RIDGE,
-        borderwidth = 2
-)
-frame_view_buttons.pack(
-        fill = tk.X,
-        # expand = True
-)
+if __name__ == "__main__":
 
-button_del_view = tk.Button(
-        frame_view_buttons,
-        text = "-",
-        command = del_view
-)
-button_del_view.pack(
-        side = tk.LEFT
-)
-button_add_view = tk.Button(
-        frame_view_buttons,
-        text = "+",
-        command = add_view
-)
-button_add_view.pack(
-        side = tk.LEFT
-)
+    root = tk.Tk()
+    root.title("Explore a polymorphic document")
 
+    frame_view_buttons = tk.Frame(
+            root,
+            relief = tk.RIDGE,
+            borderwidth = 2
+    )
+    frame_view_buttons.pack(
+            fill = tk.X,
+            # expand = True
+    )
 
-add_view()
+    button_del_view = tk.Button(
+            frame_view_buttons,
+            text = "-",
+            command = del_view
+    )
+    button_del_view.pack(
+            side = tk.LEFT
+    )
+    button_add_view = tk.Button(
+            frame_view_buttons,
+            text = "+",
+            command = add_view
+    )
+    button_add_view.pack(
+            side = tk.LEFT
+    )
 
-root.mainloop()
+    add_view()
+
+    root.mainloop()
