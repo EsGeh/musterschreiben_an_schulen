@@ -142,7 +142,7 @@ def set_output():
             doc_i_line_j can also be 'None': a dummy line in order to keep correspondence between matching lines
 
     """
-    docs_marked_lines = [[("=", line)] for line in first_doc.splitlines(keepends = True)]
+    diff_info = [[("=", line)] for line in first_doc.splitlines(keepends = True)]
 
     for view_nr, view in enumerate(views[1:], 1):
         doc = document.generate(
@@ -160,15 +160,15 @@ def set_output():
         for diff_line_nr, line in enumerate(diff):
             # line common in both sequences:
             if line.startswith( "  " ):
-                line_nr = dump_lines(
+                line_nr = dump_lines_to_diff_info(
                         line_nr,
-                        docs_marked_lines,
+                        diff_info,
                         last_matching_line,
                         b,
                         view_nr
                 )
                 b.clear()
-                docs_marked_lines[line_nr].append(
+                diff_info[line_nr].append(
                         ('=', line[2:])
                 )
                 last_matching_line = line_nr
@@ -177,18 +177,53 @@ def set_output():
                 b += [("e", line[2:])]
             elif line.startswith( "- " ):
                 line_nr += 1
-        # pprint( list(enumerate(docs_marked_lines)) )
+        # pprint( list(enumerate(diff_info)) )
         if len(b) > 0:
             # print( f"b: {b}, line_nr: {line_nr}" )
-            line_nr = dump_lines(
+            line_nr = dump_lines_to_diff_info(
                     line_nr,
-                    docs_marked_lines,
+                    diff_info,
                     last_matching_line,
                     b,
                     view_nr
             )
             b.clear()
+    print_diff_info( diff_info )
 
+def dump_lines_to_diff_info(
+        line_nr,
+        diff_info,
+        last_matching_line,
+        b,
+        view_nr,
+):
+    # skip dummy lines
+    if line_nr < len(diff_info):
+        while diff_info[line_nr][0][1] is None:
+            line_nr += 1
+    # how many lines does the other text exceed the first one?
+    diff_lines = (last_matching_line + len(b)) - line_nr + 1
+    # do we need dummy lines in the previous docs?
+    for _ in range( diff_lines ):
+        diff_info.insert(
+                line_nr,
+                [("=", None) for _ in range(view_nr)]
+        )
+        line_nr += 1
+    # print( f"difflines: {diff_lines}" )
+    # do we need dummy lines in the other doc?
+    for _ in range( -diff_lines ):
+        b.append(
+                ("=", None)
+        )
+    for index in range(0, len(b)):
+        diff_info[last_matching_line+1+index].append(
+                b[index]
+        )
+    return line_nr
+
+def print_diff_info( diff_info ):
+    first_view = views[0]
     first_view.text_gui.config(
             state=tk.NORMAL
     )
@@ -214,7 +249,7 @@ def set_output():
                 1.0,
                 tk.END
         )
-    for line in docs_marked_lines:
+    for line in diff_info:
         first_doc_edit_type = line[0][0]
         first_doc_line_content = line[0][1]
         if first_doc_line_content is not None:
@@ -257,38 +292,6 @@ def set_output():
         view.text_gui.config(
                 state=tk.DISABLED
         )
-
-def dump_lines(
-        line_nr,
-        docs_marked_lines,
-        last_matching_line,
-        b,
-        view_nr,
-):
-    # skip dummy lines
-    if line_nr < len(docs_marked_lines):
-        while docs_marked_lines[line_nr][0][1] is None:
-            line_nr += 1
-    # how many lines does the other text exceed the first one?
-    diff_lines = (last_matching_line + len(b)) - line_nr + 1
-    # do we need dummy lines in the previous docs?
-    for _ in range( diff_lines ):
-        docs_marked_lines.insert(
-                line_nr,
-                [("=", None) for _ in range(view_nr)]
-        )
-        line_nr += 1
-    # print( f"difflines: {diff_lines}" )
-    # do we need dummy lines in the other doc?
-    for _ in range( -diff_lines ):
-        b.append(
-                ("=", None)
-        )
-    for index in range(0, len(b)):
-        docs_marked_lines[last_matching_line+1+index].append(
-                b[index]
-        )
-    return line_nr
 
 def on_scroll( *args):
     for view in views:
